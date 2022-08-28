@@ -1,0 +1,213 @@
+# Adventure
+
+import random
+
+
+class Item:
+    def __init__(self, weight, worth):
+        self.weight = weight
+        self.worth = worth
+
+
+class Potion(Item):
+    def __init__(self, weight, worth):
+        Item.__init__(self, weight, worth)
+
+
+class HealthPotion(Potion):
+    def __init__(self, weight, worth, regenerated_health):
+        Potion.__init__(self, weight, worth)
+        self.regenerated_health = regenerated_health
+
+
+class Character:
+    def __init__(self, health_points, attack_damage, name):
+        self.health_points = health_points
+        self.attack_damage = attack_damage
+        self.name = name
+
+    def get_hit(self, attack_damage):
+        self.health_points = self.health_points - attack_damage
+        if self.health_points <= 0:
+            self.die()
+
+    def die(self):
+        print(self.name + " died.")
+
+    def is_dead(self):
+        self.health_points <= 0
+
+
+class Player(Character):
+    def __init__(self, health_points, attack_damage, name):
+        Character.__init__(self, health_points, attack_damage, name)
+        self.max_health_points = health_points
+
+    def die(self):
+        exit("Try again. You are dead.")
+
+    def rest(self):
+        self.health_points = self.max_health_points
+
+
+class Goblin(Character):
+    def __init__(self):
+        Character.__init__(self, 100, 30, 'Goblin')
+
+
+class Ork(Character):
+    def __init__(self):
+        Character.__init__(self, 100, 50, "Ork")
+
+
+class Field:
+    def __init__(self, enemies):
+        self.enemies = enemies
+        self.loot = []
+
+    def print_state(self):
+        print('You look around and see: ')
+        for i in self.enemies:
+            print(i.name)
+
+    @staticmethod
+    def gen_random():
+        rand = random.randint(0, 2)
+        if rand == 0:
+            return Field([])
+        elif rand == 1:
+            return Field([Ork(), Goblin()])
+        elif rand == 2:
+            return Field([Ork(), Ork(), Goblin()])
+
+
+class Map:
+    def __init__(self, width, height):
+        self.state = [[]]
+        self.x = 0
+        self.y = 0
+        for i in range(width):
+            fields = []
+            for j in range(height):
+                fields.append(Field.gen_random())
+            self.state.append(fields)
+
+    def get_enemies(self):
+        return self.state[self.x][self.y].enemies
+
+    def print_state(self):
+        self.state[self.x][self.y].print_state()
+
+    def forward(self):
+        if self.x == len(self.state):
+            print("A huge thunderstorm hinders you to go any further.")
+        else:
+            self.x = self.x + 1
+
+    def backwards(self):
+        if self.x == 0:
+            print("You are at the edge of a large volcano. You may not go any further in that direction.")
+        else:
+            self.x = self.x - 1
+
+    def left(self):
+        if self.y == 0:
+            print("You are at the edge of a large volcano. You may not go any further in that direction.")
+        else:
+            self.y = self.y - 1
+
+    def right(self):
+        if self.y == len(self.state[self.x]) - 1:
+            print("You are at the edge of a large volcano. You may not go any further in that direction.")
+        else:
+            self.y = self.y + 1
+
+
+def print_help(p, m):
+    print(Commands.keys())
+
+
+def quit_game(p,m):
+    print('You committed suicide')
+    exit(0)
+
+
+def forwards(p, m):
+    m.forward()
+
+
+def backwards(p, m):
+    m.backwards()
+
+
+def left(p, m):
+    m.left()
+
+
+def right(p, m):
+    m.right()
+
+
+def save():
+    pass
+
+
+def load():
+    pass
+
+
+def pickup(p, m):
+    pass
+
+
+def run_away(p, m):
+    pass
+
+
+def rest(p, m):
+    p.rest()
+
+
+def fight(p, m):
+    enemies = m.get_enemies()
+    while len(enemies) > 0:
+        enemies[0].get_hit(p.attack_damage)
+        if enemies[0].is_dead():
+            enemies.remove(enemies[0])
+        for i in enemies:
+            p.get_hit(i.attack_damage)
+        print("You are wounded and have " + str(p.health_points) + " left.")
+
+
+Commands = {
+    'help': print_help,
+    'quit': quit_game,
+    'pickup': pickup,
+    'forward': forwards,
+    'right': right,
+    'left': left,
+    'backwards': backwards,
+    'fight': fight,
+    'save': save,
+    'load': load,
+    'rest': rest,
+    'run': run_away,
+}
+
+if __name__ == '__main__':
+    name = input("Enter your name: ")
+    p = Player(1000, 100, name)
+    map = Map(5, 5)
+    print("(type help to list the commands available\n)")
+
+# Game-loop
+    while True:
+        map.print_state()
+        command = input('>').lower().split(' ')
+        if command[0] in Commands:
+            if len(command) > 1:
+                Commands[command[0]](p, map)
+            else:
+                Commands[command[0]](p, map)
+        else:
+            print('You are lost')
