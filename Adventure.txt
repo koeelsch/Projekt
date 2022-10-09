@@ -211,3 +211,5 @@ if __name__ == '__main__':
                 Commands[command[0]](p, map)
         else:
             print('You are lost')
+
+# This is an edit
